@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desk & Tech Govt Job Alerts (SC Category)</title>
+    <!-- Tailwind CSS for clean mobile styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        body { padding-bottom: 80px; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans antialiased">
+
+    <!-- Top Fixed Header -->
+    <header class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50 px-4 py-3 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl">💻</span>
+            <div>
+                <h1 class="text-md font-bold tracking-wide text-amber-400">DESK & TECH JOB ALERTS</h1>
+                <p class="text-[10px] text-gray-400">SC Category | No Physicals Only</p>
+            </div>
+        </div>
+        <button onclick="simulateNewJob()" class="bg-amber-500 hover:bg-amber-600 text-gray-950 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-all active:scale-95">
+            🔄 Sync Feed
+        </button>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-md mx-auto p-4 space-y-4">
+
+        <!-- Active Tab: Live Job Feed -->
+        <div id="feed-tab" class="tab-content active space-y-4">
+            <!-- Filter Summary Banner -->
+            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-3 text-xs space-y-1">
+                <div class="flex justify-between text-gray-400">
+                    <span>Pattern Scale: <strong class="text-emerald-400">≤ SSC CGL Level</strong></span>
+                    <span id="job-count" class="bg-gray-800 text-amber-400 px-2 py-0.5 rounded-full font-bold">4 Active</span>
+                </div>
+                <p class="text-gray-500 text-[11px]">Strictly filtered for Technical/Non-Technical written exams only. No physical standards required.</p>
+            </div>
+
+            <!-- Feed Container -->
+            <div id="job-feed-list" class="space-y-3.5">
+                <!-- Javascript will inject entries here -->
+            </div>
+        </div>
+
+        <!-- Saved Tracker Tab -->
+        <div id="saved-tab" class="tab-content space-y-4">
+            <h2 class="text-base font-bold text-gray-200 px-1">Pinned Application Steps</h2>
+            <div id="saved-job-list" class="space-y-3.5">
+                <!-- Saved items render here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-gray-900/95 border-t border-gray-800 backdrop-blur-md py-2 flex justify-around items-center z-50 max-w-md mx-auto">
+        <button onclick="switchTab('feed-tab')" id="btn-feed-tab" class="flex flex-col items-center space-y-1 text-amber-400 font-medium">
+            <span class="text-lg">📢</span>
+            <span class="text-[11px]">All Alerts</span>
+        </button>
+        <button onclick="switchTab('saved-tab')" id="btn-saved-tab" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-gray-200">
+            <span class="text-lg">📌</span>
+            <span class="text-[11px]">Pinned Tracking</span>
+        </button>
+    </nav>
+
+    <!-- App Business Logic -->
+    <script>
+        const defaultJobs = [
+            {
+                id: 201,
+                title: "HSSC Group C CET (Clerk & Desk Posts)",
+                organization: "Haryana Staff Selection Commission",
+                type: "HARYANA",
+                scAgeLimit: "Up to 47 Years max (18-42 Base + 5 yrs SC relaxation)",
+                examLevel: "12th / Graduate level written tier",
+                testPattern: "Maths, Reasoning, English, GA + Hindi & Haryana State GK",
+                reqType: "Written CBT/OMR + Basic Typing Test only (NO physical metrics)",
+                officialUrl: "https://hssc.gov.in/",
+                badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20"
+            },
+            {
+                id: 202,
+                title: "SSC Combined Graduate Level (CGL) Desk Cadres",
+                organization: "Staff Selection Commission (Govt of India)",
+                type: "SSC",
+                scAgeLimit: "Up to 37 Years max (32 Base + 5 yrs SC relaxation)",
+                examLevel: "Graduate Level Desk Posts (Assistant, Auditor, Accountant)",
+                testPattern: "Tier 1 + Tier 2 (Quant, Reasoning, English, General Awareness, Computer)",
+                reqType: "Computer Based Test (CBT) Merit Only (No physical check required)",
+                officialUrl: "https://ssc.gov.in/",
+                badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            },
+            {
+                id: 203,
+                title: "HSSC Group D CET Post Allocation",
+                organization: "Haryana Staff Selection Commission",
+                type: "HARYANA",
+                scAgeLimit: "Up to 47 Years max (18-42 Base + 5 yrs SC relaxation)",
+                examLevel: "10th Level Entry (Below CGL difficulty)",
+                testPattern: "General Aptitude blueprint + Core Haryana State GK questions",
+                reqType: "Single Stage OMR Test. Direct merit listing based on marks.",
+                officialUrl: "https://hssc.gov.in/",
+                badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20"
+            },
+            {
+                id: 204,
+                title: "SSC Combined Higher Secondary Level (CHSL)",
+                organization: "Staff Selection Commission",
+                type: "SSC",
+                scAgeLimit: "Up to 32 Years max (27 Base + 5 yrs SC relaxation)",
+                examLevel: "12th Pass Level (LDC / JSA / Data Entry Operator)",
+                testPattern: "Identical to CGL Syllabus structure but lower difficulty scale",
+                reqType: "Written Exam phases + Data Entry Speed Check (No physicals)",
+                officialUrl: "https://ssc.gov.in/",
+                badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            }
+        ];
+
+        let jobs = JSON.parse(localStorage.getItem('sc_govt_jobs')) || defaultJobs;
+        let savedJobIds = JSON.parse(localStorage.getItem('sc_saved_ids')) || [];
+
+        function saveToStorage() {
+            localStorage.setItem('sc_govt_jobs', JSON.stringify(jobs));
+            localStorage.setItem('sc_saved_ids', JSON.stringify(savedJobIds));
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.getElementById('btn-feed-tab').className = tabId === 'feed-tab' ? 'flex flex-col items-center space-y-1 text-amber-400 font-medium' : 'flex flex-col items-center space-y-1 text-gray-400';
+            document.getElementById('btn-saved-tab').className = tabId === 'saved-tab' ? 'flex flex-col items-center space-y-1 text-amber-400 font-medium' : 'flex flex-col items-center space-y-1 text-gray-400';
+            render();
+        }
+
+        function togglePinJob(id) {
+            if (savedJobIds.includes(id)) {
+                savedJobIds = savedJobIds.filter(savedId => savedId !== id);
+            } else {
+                savedJobIds.push(id);
+            }
+            saveToStorage();
+            render();
+        }
+
+        function simulateNewJob() {
+            const simulatedTechNonTech = [
+                {
+                    id: Date.now(),
+                    title: "HSSC Patwari & Revenue Canal Records",
+                    organization: "Haryana Land Records Dept",
+                    type: "HARYANA",
+                    scAgeLimit: "Up to 47 Years max (SC Category)",
+                    examLevel: "Graduate Written Merit Base",
+                    testPattern: "Core CET Scoring matrix + Analytical Aptitude Focus",
+                    reqType: "Pure desk profile verification post exam (No physical run/chest specs)",
+                    officialUrl: "https://hssc.gov.in/",
+                    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                },
+                {
+                    id: Date.now() + 1,
+                    title: "SSC Selection Post (Technical Assistant / IT Clerks)",
+                    organization: "Staff Selection Commission Central Region",
+                    type: "SSC",
+                    scAgeLimit: "Up to 35-37 Years max depending on post code (SC Scale)",
+                    examLevel: "10th / 12th / Degree options (CGL level or below)",
+                    testPattern: "100 Questions Core SSC Framework (Quant, Reasoning, English, GA)",
+                    reqType: "Technical/Non-Tech Skill verification via CBT Score (Zero physical rounds)",
+                    officialUrl: "https://ssc.gov.in/",
+                    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                }
+            ];
+            
+            const freshSelection = simulatedTechNonTech[Math.floor(Math.random() * simulatedTechNonTech.length)];
+            if (!jobs.some(j => j.title === freshSelection.title)) {
+                jobs.unshift(freshSelection);
+                saveToStorage();
+                render();
+                alert(`Added verified desk alert: ${freshSelection.title}`);
+            } else {
+                alert("Syllabus tracks verified. No new desk vacancy alerts published in current cycle.");
+            }
+        }
+
+        function buildCardHtml(job) {
+            const isPinned = savedJobIds.includes(job.id);
+            return `
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-md space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] px-2 py-0.5 rounded-md font-bold uppercase border ${job.badgeColor}">
+                            ${job.type} • NO PHYSICAL REQUIRED
+                        </span>
+                        <button onclick="togglePinJob(${job.id})" class="text-sm px-1 py-0.5 bg-gray-950 rounded border border-gray-800 text-gray-400 hover:text-amber-400">
+                            ${isPinned ? '📌 Unpin' : '🧷 Pin Tracker'}
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold text-gray-100 text-base leading-tight">${job.title}</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">${job.organization}</p>
+                    </div>
+
+                    <div class="bg-gray-950/80 rounded-lg p-2.5 space-y-2 border border-gray-800/60 text-xs">
+                        <div><span class="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">SC Age Criterion:</span> <span class="text-emerald-400 font-medium">${job.scAgeLimit}</span></div>
+                        <div><span class="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">Exam Scheme & Level:</span> <span class="text-gray-300">${job.examLevel}</span></div>
+                        <div><span class="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">Syllabus Subjects:</span> <span class="text-amber-400/90 font-medium">${job.testPattern}</span></div>
+                        <div><span class="text-gray-500 block text-[10px] uppercase font-bold tracking-wider">Process Filter:</span> <span class="text-gray-300 font-mono">${job.reqType}</span></div>
+                    </div>
+
+                    <div class="pt-1 flex justify-end">
+                        <a href="${job.officialUrl}" target="_blank" class="w-full text-center bg-gray-800 hover:bg-gray-700 text-amber-400 font-bold text-xs py-2 rounded-lg transition-colors border border-gray-700">
+                            Open Official Portal ↗
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function render() {
+            const feedContainer = document.getElementById('job-feed-list');
+            feedContainer.innerHTML = jobs.map(j => buildCardHtml(j)).join('');
+            document.getElementById('job-count').innerText = `${jobs.length} Active`;
+
+            const savedContainer = document.getElementById('saved-job-list');
+            const savedJobs = jobs.filter(j => savedJobIds.includes(j.id));
+            if(savedJobs.length === 0) {
+                savedContainer.innerHTML = `
+                    <div class="text-center py-8 border border-dashed border-gray-800 rounded-xl text-gray-500 text-xs">
+                        No active tracking lines pinned. Use the 🧷 tool to organize your focused jobs.
+                    </div>
+                `;
+            } else {
+                savedContainer.innerHTML = savedJobs.map(j => buildCardHtml(j)).join('');
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
